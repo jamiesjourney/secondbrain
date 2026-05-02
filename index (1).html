@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Second Brain">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<title>Second Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #1a1a1a;
+    --bg4: #222222;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0ece4;
+    --text2: #8a8680;
+    --text3: #5a5652;
+    --accent: #c8b89a;
+    --accent2: #8a6f52;
+    --green: #4a9e6e;
+    --green-bg: rgba(74,158,110,0.12);
+    --blue: #5b8fcc;
+    --blue-bg: rgba(91,143,204,0.12);
+    --purple: #9b7ec8;
+    --purple-bg: rgba(155,126,200,0.12);
+    --coral: #cc6b52;
+    --coral-bg: rgba(204,107,82,0.12);
+    --amber: #c49a3c;
+    --amber-bg: rgba(196,154,60,0.12);
+    --pink: #b85c7e;
+    --pink-bg: rgba(184,92,126,0.12);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+
+  #app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--safe-top);
+  }
+
+  /* Header */
+  .header {
+    padding: 16px 20px 12px;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .header-title span { color: var(--accent); font-style: italic; }
+  .note-count {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Nav */
+  .nav {
+    display: flex;
+    border-bottom: 0.5px solid var(--border);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex: 1;
+    min-width: 60px;
+    padding: 10px 4px;
+    font-size: 11px;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    transition: color 0.15s;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .nav-btn svg { width: 16px; height: 16px; opacity: 0.5; transition: opacity 0.15s; }
+  .nav-btn.active { color: var(--accent); }
+  .nav-btn.active svg { opacity: 1; stroke: var(--accent); }
+  .nav-btn:active { opacity: 0.6; }
+
+  /* Panels */
+  .panels { flex: 1; overflow: hidden; position: relative; }
+  .panel {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 20px;
+    padding-bottom: calc(20px + var(--safe-bottom));
+    display: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .panel.active { display: block; }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 0.5px solid var(--border2);
+    background: var(--bg3);
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--bg4); }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary {
+    background: var(--accent);
+    color: #0a0a0a;
+    border-color: var(--accent);
+    font-weight: 500;
+  }
+  .btn.primary:hover { background: #d4c4aa; }
+  .btn.sm { padding: 7px 12px; font-size: 12px; }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Inputs */
+  textarea, input[type=text] {
+    width: 100%;
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    resize: none;
+    line-height: 1.6;
+    transition: border-color 0.15s;
+  }
+  textarea:focus, input[type=text]:focus {
+    outline: none;
+    border-color: var(--border2);
+  }
+  textarea::placeholder, input::placeholder { color: var(--text3); }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 1.5px dashed var(--border2);
+    border-radius: 14px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg2);
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+  .upload-zone:active { border-color: var(--accent); background: var(--bg3); }
+  .upload-icon { margin-bottom: 10px; opacity: 0.4; }
+  .upload-title { font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .upload-sub { font-size: 12px; color: var(--text3); }
+
+  /* Cards */
+  .card {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .card-label {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  /* Category colors */
+  .cat-health { color: var(--green); }
+  .cat-business { color: var(--blue); }
+  .cat-mental { color: var(--purple); }
+  .cat-ideas { color: var(--coral); }
+  .cat-finance { color: var(--amber); }
+  .cat-relationships { color: var(--pink); }
+  .cat-other { color: var(--text2); }
+
+  .badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    display: inline-block;
+  }
+  .badge-health { background: var(--green-bg); color: var(--green); }
+  .badge-business { background: var(--blue-bg); color: var(--blue); }
+  .badge-mental { background: var(--purple-bg); color: var(--purple); }
+  .badge-ideas { background: var(--coral-bg); color: var(--coral); }
+  .badge-finance { background: var(--amber-bg); color: var(--amber); }
+  .badge-relationships { background: var(--pink-bg); color: var(--pink); }
+  .badge-other { background: var(--bg4); color: var(--text2); }
+
+  /* Status */
+  .status { font-size: 12px; min-height: 18px; font-family: 'DM Mono', monospace; }
+  .status.loading { color: var(--blue); }
+  .status.ok { color: var(--green); }
+  .status.err { color: var(--coral); }
+
+  /* Divider */
+  .divider { height: 0.5px; background: var(--border); margin: 16px 0; }
+
+  /* Section label */
+  .slabel {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  /* Insight cards */
+  .insight {
+    border-left: 2px solid;
+    padding: 10px 14px;
+    border-radius: 0 10px 10px 0;
+    margin: 8px 0;
+    background: var(--bg2);
+  }
+  .insight.pattern { border-color: var(--green); }
+  .insight.contradiction { border-color: var(--coral); }
+  .insight.drift { border-color: var(--purple); }
+  .insight.resurface { border-color: var(--blue); }
+  .insight-type {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .insight.pattern .insight-type { color: var(--green); }
+  .insight.contradiction .insight-type { color: var(--coral); }
+  .insight.drift .insight-type { color: var(--purple); }
+  .insight.resurface .insight-type { color: var(--blue); }
+  .insight-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+  /* Entity pills */
+  .entity-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    margin: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text);
+    transition: all 0.12s;
+  }
+  .entity-pill:active { background: var(--bg4); }
+  .entity-count {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Mic button */
+  .mic-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 0.5px solid var(--border2);
+    background: var(--bg3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .mic-btn svg { width: 18px; height: 18px; stroke: var(--text2); fill: none; }
+  .mic-btn.recording {
+    background: var(--coral-bg);
+    border-color: var(--coral);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .mic-btn.recording svg { stroke: var(--coral); }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(0.95)} }
+
+  /* Brain tree */
+  .cat-block { margin-bottom: 14px; }
+  .cat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .cat-header:active { background: var(--bg3); }
+  .cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .cat-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .cat-chevron { font-size: 10px; color: var(--text3); transition: transform 0.2s; }
+  .cat-chevron.open { transform: rotate(90deg); }
+  .cat-body { display: none; padding: 6px 0 0 14px; }
+  .cat-body.open { display: block; }
+  .sub-block { margin: 8px 0; }
+  .sub-name {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+    padding-left: 4px;
+  }
+  .entry-row {
+    padding: 7px 4px;
+    border-bottom: 0.5px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s;
+    border-radius: 4px;
+  }
+  .entry-row:last-child { border: none; }
+  .entry-row:active { background: var(--bg3); }
+  .entry-summary { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .entry-date { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .entry-detail {
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 6px 0;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.65;
+    display: none;
+  }
+  .entry-detail.open { display: block; }
+  .so-what {
+    background: var(--bg4);
+    border-radius: 6px;
+    padding: 7px 10px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--accent);
+    line-height: 1.5;
+  }
+  .so-what-label { font-size: 10px; font-family: 'DM Mono', monospace; opacity: 0.6; margin-bottom: 2px; }
+
+  /* Ask quick prompts */
+  .quick-prompts { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 14px; }
+  .qp { font-size: 11px; padding: 5px 10px; border-radius: 20px; border: 0.5px solid var(--border); background: var(--bg2); color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.12s; }
+  .qp:active { background: var(--bg3); color: var(--text); }
+
+  /* Answer box */
+  .answer-box {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .answer-label {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+
+  /* Digest */
+  .digest-headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+  .digest-section { margin-bottom: 18px; }
+  .digest-section h3 { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .digest-theme {
+    font-size: 13px;
+    color: var(--text2);
+    padding: 5px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .digest-theme:last-child { border: none; }
+  .digest-q {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    font-style: italic;
+    color: var(--accent);
+    line-height: 1.5;
+    padding: 12px 16px;
+    background: var(--bg3);
+    border-radius: 10px;
+  }
+  .action-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .action-item:last-child { border: none; }
+  .action-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 0.5px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Settings */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .settings-label { font-size: 13px; color: var(--text); }
+  .settings-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  input[type=password] {
+    width: 100%;
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text);
+    margin-top: 8px;
+  }
+  input[type=password]:focus { outline: none; border-color: var(--border2); }
+
+  /* Image preview */
+  #imgPrev {
+    max-width: 100%;
+    max-height: 180px;
+    border-radius: 10px;
+    display: block;
+    margin: 10px auto;
+    border: 0.5px solid var(--border);
+  }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--text3); }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.3; }
+  .empty p { font-size: 13px; line-height: 1.6; }
+
+  /* Row util */
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .row.between { justify-content: space-between; }
+  .row.end { justify-content: flex-end; }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: calc(80px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg3);
+    border: 0.5px solid var(--border2);
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text);
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 100;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Scrollbar */
+  .panel::-webkit-scrollbar { width: 3px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
+  .panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Install banner */
+  #installBanner {
+    position: fixed;
+    bottom: calc(72px + var(--safe-bottom));
+    left: 12px;
+    right: 12px;
+    background: var(--bg3);
+    border: 0.5px solid var(--accent2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    z-index: 50;
+  }
+  #installBanner p { font-size: 12px; color: var(--text2); flex: 1; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-title">Second <span>Brain</span></div>
+    <div class="note-count" id="noteCount">0 notes</div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="sw('capture')" id="nb-capture">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+      Capture
+    </button>
+    <button class="nav-btn" onclick="sw('brain')" id="nb-brain">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"/></svg>
+      Brain
+    </button>
+    <button class="nav-btn" onclick="sw('patterns')" id="nb-patterns">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/></svg>
+      Patterns
+    </button>
+    <button class="nav-btn" onclick="sw('entities')" id="nb-entities">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+      People
+    </button>
+    <button class="nav-btn" onclick="sw('ask')" id="nb-ask">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
+      Ask
+    </button>
+    <button class="nav-btn" onclick="sw('digest')" id="nb-digest">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
+      Digest
+    </button>
+  </nav>
+
+  <div class="panels">
+
+    <!-- CAPTURE -->
+    <div class="panel active" id="tab-capture">
+      <div class="upload-zone" onclick="document.getElementById('fi').click()" id="dropZone">
+        <div class="upload-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+        </div>
+        <div class="upload-title">Photo of your notes</div>
+        <div class="upload-sub">Tap to take photo or browse · handwriting read automatically</div>
+      </div>
+      <input type="file" id="fi" accept="image/*" capture="environment" style="display:none" onchange="handleImg(event)">
+      <img id="imgPrev" style="display:none">
+      <div id="ocrWrap" style="display:none">
+        <span class="slabel">Extracted text — edit if needed</span>
+        <textarea id="ocrTxt" rows="4" placeholder="Transcribed text..."></textarea>
+        <div class="row between" style="margin-top:8px">
+          <div id="ocrSt" class="status"></div>
+          <button class="btn primary sm" id="addOcrBtn" onclick="addToB('ocr')" disabled>Add to brain</button>
+        </div>
+        <div class="divider"></div>
+      </div>
+
+      <div class="row" style="align-items:flex-start;gap:10px">
+        <div style="flex:1">
+          <span class="slabel">Type or dictate a thought</span>
+          <textarea id="manTxt" rows="4" placeholder="Anything — health, business ideas, how you're feeling, observations, plans..."></textarea>
+        </div>
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()" style="margin-top:22px">
+          <svg viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/></svg>
+        </button>
+      </div>
+      <div class="row between" style="margin-top:8px">
+        <div id="manSt" class="status"></div>
+        <button class="btn primary sm" onclick="addToB('man')">Add to brain</button>
+      </div>
+    </div>
+
+    <!-- BRAIN -->
+    <div class="panel" id="tab-brain">
+      <div id="brainView"></div>
+    </div>
+
+    <!-- PATTERNS -->
+    <div class="panel" id="tab-patterns">
+      <div class="row between" style="margin-bottom:14px">
+        <div>
+          <div style="font-size:14px;font-weight:500">Pattern analysis</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Contradictions, drift, resurfaced themes</div>
+        </div>
+        <button class="btn primary sm" onclick="runPatterns()">Analyse ↗</button>
+      </div>
+      <div id="patternView">
+        <div class="empty"><div class="empty-icon">◎</div><p>Hit Analyse to surface hidden patterns across all your notes</p></div>
+      </div>
+    </div>
+
+    <!-- ENTITIES -->
+    <div class="panel" id="tab-entities">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:14px">People, habits, symptoms and ideas that recur across your notes</div>
+      <div id="entityView">
+        <div class="empty"><div class="empty-icon">◉</div><p>People and recurring things will appear here as you add notes</p></div>
+      </div>
+    </div>
+
+    <!-- ASK -->
+    <div class="panel" id="tab-ask">
+      <span class="slabel">Ask anything across your entire brain</span>
+      <textarea id="qTxt" rows="3" placeholder="What patterns connect my mood and productivity? What am I avoiding? What should I focus on this week?"></textarea>
+      <div class="quick-prompts">
+        <span class="qp" onclick="setQ('What patterns do you see across all my notes?')">Patterns</span>
+        <span class="qp" onclick="setQ('What am I avoiding or circling around?')">Avoidance</span>
+        <span class="qp" onclick="setQ('What decision should I prioritise this week?')">Decisions</span>
+        <span class="qp" onclick="setQ('Where do my actions contradict my stated goals?')">Contradictions</span>
+        <span class="qp" onclick="setQ('What do my health and business notes have in common?')">Cross-domain</span>
+      </div>
+      <div class="row end">
+        <button class="btn primary" onclick="askBrain()">Ask ↗</button>
+      </div>
+      <div id="askSt" class="status" style="margin-top:8px"></div>
+      <div id="answerWrap" style="display:none">
+        <div class="answer-box">
+          <div class="answer-label">Brain analysis</div>
+          <div id="answerTxt"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIGEST -->
+    <div class="panel" id="tab-digest">
+      <div class="row between" style="margin-bottom:16px">
+        <div>
+          <div style="font-size:14px;font-weight:500">Weekly synthesis</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">What matters, what's emerging, what to do</div>
+        </div>
+        <button class="btn primary sm" onclick="genDigest()">Generate ↗</button>
+      </div>
+      <div id="digestView">
+        <div class="empty"><div class="empty-icon">◌</div><p>Generate your first weekly digest once you've captured some notes</p></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const CAT_COLORS = { health:'#4a9e6e', business:'#5b8fcc', 'mental health':'#9b7ec8', ideas:'#cc6b52', relationships:'#b85c7e', learning:'#c49a3c', finance:'#4a9e6e', other:'#5a5652' };
+const CAT_BADGE = { health:'badge-health', business:'badge-business', 'mental health':'badge-mental', ideas:'badge-ideas', relationships:'badge-relationships', finance:'badge-finance', other:'badge-other' };
+
+let brain = {}, entities = {};
+let mediaRec = null, recording = false, audioChunks = [];
+
+// Load from storage
+try { const s = localStorage.getItem('sb_v3'); if (s) { const p = JSON.parse(s); brain = p.brain||{}; entities = p.entities||{}; } } catch(e) {}
+
+function save() { try { localStorage.setItem('sb_v3', JSON.stringify({brain, entities})); } catch(e) {} }
+function totalNotes() { return Object.values(brain).reduce((a,cat)=>a+Object.values(cat).reduce((b,sub)=>b+sub.length,0),0); }
+function updateCount() { document.getElementById('noteCount').textContent = totalNotes()+' notes'; }
+updateCount();
+
+function sw(tab) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('nb-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if (tab === 'brain') renderBrain();
+  if (tab === 'entities') renderEntities();
+}
+
+function toast(msg, duration=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), duration);
+}
+
+function setSt(id, msg, type) { const el = document.getElementById(id); if(!el)return; el.textContent=msg; el.className='status '+(type||''); }
+function setQ(q) { document.getElementById('qTxt').value=q; }
+
+// Auto-detect latest model
+let cachedModel = localStorage.getItem('sb_model') || '';
+let modelFetchedAt = parseInt(localStorage.getItem('sb_model_ts') || '0');
+
+async function getModel(apiKey) {
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  if (cachedModel && (Date.now() - modelFetchedAt) < oneDayMs) return cachedModel;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/models', {
+      headers:{ 'x-api-key': apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' }
+    });
+    if (!res.ok) throw new Error('models fetch failed');
+    const data = await res.json();
+    // Pick latest sonnet (best balance of speed/cost/capability)
+    const sonnet = data.data
+      .filter(m => m.id.includes('sonnet') && !m.id.includes('3-'))
+      .sort((a,b) => b.id.localeCompare(a.id))[0];
+    const model = sonnet ? sonnet.id : (data.data[0]?.id || 'claude-sonnet-4-5-20250929');
+    cachedModel = model;
+    modelFetchedAt = Date.now();
+    localStorage.setItem('sb_model', model);
+    localStorage.setItem('sb_model_ts', modelFetchedAt.toString());
+    console.log('Using model:', model);
+    return model;
+  } catch(e) {
+    return cachedModel || 'claude-sonnet-4-5-20250929';
+  }
+}
+
+// API call
+async function api(messages, systemPrompt) {
+  const apiKey = localStorage.getItem('sb_apikey') || '';
+  if (!apiKey) {
+    const k = prompt('Enter your Anthropic API key (from console.anthropic.com):');
+    if (k && k.trim().startsWith('sk-ant')) {
+      localStorage.setItem('sb_apikey', k.trim());
+    } else {
+      throw new Error('API key required');
+    }
+  }
+  const model = await getModel(localStorage.getItem('sb_apikey'));
+  const body = { model, max_tokens:1500, messages };
+  if (systemPrompt) body.system = systemPrompt;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-api-key': localStorage.getItem('sb_apikey'), 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || 'API error');
+  }
+  const data = await res.json();
+  return data.content?.map(b=>b.text||'').join('')||'';
+}
+
+// Image handling
+async function handleImg(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const prev = document.getElementById('imgPrev');
+    prev.src = ev.target.result; prev.style.display = 'block';
+    document.getElementById('ocrWrap').style.display = 'block';
+    document.getElementById('addOcrBtn').disabled = true;
+    setSt('ocrSt','Reading handwriting...','loading');
+    try {
+      const b64 = ev.target.result.split(',')[1];
+      const txt = await api([{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}},
+        {type:'text',text:'Transcribe ALL handwritten or printed text from this image exactly as written. Preserve line breaks and structure. Return only the transcribed text, nothing else.'}
+      ]}]);
+      document.getElementById('ocrTxt').value = txt;
+      document.getElementById('addOcrBtn').disabled = false;
+      setSt('ocrSt','Transcribed — edit if needed','ok');
+    } catch(err) {
+      setSt('ocrSt','Could not read image: '+err.message,'err');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// Add to brain
+async function addToB(src) {
+  const txtEl = src==='ocr' ? 'ocrTxt' : 'manTxt';
+  const stEl = src==='ocr' ? 'ocrSt' : 'manSt';
+  const txt = document.getElementById(txtEl).value.trim();
+  if (!txt) return;
+  setSt(stEl,'Thinking...','loading');
+  const existing = Object.keys(brain).join(', ') || 'none';
+  try {
+    const raw = await api([{role:'user',content:`Analyse this personal note. Return ONLY valid JSON, no markdown, no explanation.
+
+Note: "${txt}"
+Existing categories: ${existing}
+Date: ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
+
+Return exactly:
+{
+  "category": "health|business|mental health|ideas|relationships|learning|finance|other",
+  "subcategory": "specific sub-topic 2-4 words",
+  "summary": "one sentence summary under 15 words",
+  "tags": ["tag1","tag2","tag3"],
+  "insight": "one brief observation or emerging pattern",
+  "soWhat": "one concrete micro-action or question this note calls for",
+  "entities": ["person name or habit or company or symptom mentioned — only proper nouns or specific recurring things"],
+  "sentiment": "positive|neutral|negative|mixed",
+  "date": "${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}",
+  "timestamp": "${new Date().toISOString()}"
+}`}]);
+    let parsed;
+    try { parsed = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch(e) { parsed = {category:'other',subcategory:'general',summary:txt.slice(0,60),tags:[],insight:'',soWhat:'',entities:[],sentiment:'neutral',date:new Date().toLocaleDateString(),timestamp:new Date().toISOString()}; }
+    const cat = parsed.category||'other';
+    const sub = parsed.subcategory||'general';
+    if (!brain[cat]) brain[cat] = {};
+    if (!brain[cat][sub]) brain[cat][sub] = [];
+    brain[cat][sub].push({...parsed,raw:txt,id:Date.now()});
+    (parsed.entities||[]).forEach(en => {
+      const k = en.toLowerCase().trim();
+      if (!k||k.length<2) return;
+      if (!entities[k]) entities[k] = {name:en,mentions:[],category:cat};
+      entities[k].mentions.push({summary:parsed.summary,date:parsed.date,cat});
+    });
+    save(); updateCount();
+    setSt(stEl,'','');
+    toast('Saved → '+cat+' › '+sub);
+    document.getElementById(txtEl).value = '';
+    if (src==='ocr') { document.getElementById('imgPrev').style.display='none'; document.getElementById('ocrWrap').style.display='none'; }
+  } catch(err) {
+    setSt(stEl,'Error: '+err.message,'err');
+    if (err.message.includes('API key')) { setSt(stEl,'Add your API key in Settings ↗','err'); }
+  }
+}
+
+// Render brain tree
+function renderBrain() {
+  const el = document.getElementById('brainView');
+  const cats = Object.keys(brain);
+  if (!cats.length) { el.innerHTML='<div class="empty"><div class="empty-icon">○</div><p>Your brain is empty<br>Capture some notes to get started</p></div>'; return; }
+  el.innerHTML = cats.map(cat => {
+    const subs = brain[cat];
+    const total = Object.values(subs).reduce((a,b)=>a+b.length,0);
+    const color = CAT_COLORS[cat]||'#5a5652';
+    const badgeClass = CAT_BADGE[cat]||'badge-other';
+    const subsHTML = Object.entries(subs).map(([sub,entries])=>`
+      <div class="sub-block">
+        <div class="sub-name">${sub}</div>
+        ${entries.slice().reverse().map(e=>`
+          <div class="entry-row" onclick="toggleEntry(${e.id})">
+            <div class="entry-summary">${e.summary||e.raw.slice(0,80)}</div>
+            <div class="entry-date">${e.date||''}</div>
+          </div>
+          <div class="entry-detail" id="ed-${e.id}">
+            <div style="color:var(--text2);margin-bottom:8px">${e.raw}</div>
+            ${e.insight?`<div style="font-size:11px;color:var(--text3);font-style:italic;margin-bottom:6px">${e.insight}</div>`:''}
+            ${e.soWhat?`<div class="so-what"><div class="so-what-label">→ action</div>${e.soWhat}</div>`:''}
+            ${e.tags?.length?`<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">${e.tags.map(t=>`<span style="font-size:10px;background:var(--bg4);padding:2px 7px;border-radius:20px;color:var(--text3)">${t}</span>`).join('')}</div>`:''}
+          </div>`).join('')}
+      </div>`).join('');
+    return `<div class="cat-block">
+      <div class="cat-header" onclick="toggleCat('${cat}')">
+        <span class="cat-dot" style="background:${color}"></span>
+        <span class="cat-name">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span>
+        <span class="badge ${badgeClass}">${total}</span>
+        <span class="cat-chevron" id="chev-${cat}">›</span>
+      </div>
+      <div class="cat-body" id="catb-${cat}">${subsHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCat(cat) {
+  document.getElementById('catb-'+cat).classList.toggle('open');
+  document.getElementById('chev-'+cat).classList.toggle('open');
+}
+function toggleEntry(id) {
+  document.getElementById('ed-'+id).classList.toggle('open');
+}
+
+// Render entities
+function renderEntities() {
+  const el = document.getElementById('entityView');
+  const ents = Object.values(entities).filter(e=>e.mentions.length>0).sort((a,b)=>b.mentions.length-a.mentions.length);
+  if (!ents.length) { el.innerHTML='<div class="empty"><div class="empty-icon">◉</div><p>People, habits and recurring things will appear here as you add notes</p></div>'; return; }
+  el.innerHTML = '<div style="margin-bottom:14px">'+ents.map(e=>`<span class="entity-pill" onclick="showEntity('${e.name.replace(/'/g,"\\'")}')"><span style="width:6px;height:6px;border-radius:50%;background:${CAT_COLORS[e.category]||'#5a5652'};flex-shrink:0"></span>${e.name}<span class="entity-count">${e.mentions.length}</span></span>`).join('')+'</div><div id="entityDetail"></div>';
+}
+
+function showEntity(name) {
+  const e = entities[name.toLowerCase().trim()]; if (!e) return;
+  document.getElementById('entityDetail').innerHTML = `<div class="card">
+    <div class="card-label">${e.name} — all mentions</div>
+    ${e.mentions.map(m=>`<div style="padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;color:var(--text)"><span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-right:8px">${m.date}</span>${m.summary}</div>`).join('')}
+  </div>`;
+}
+
+// Brain dump for AI
+function brainDump() {
+  if (!Object.keys(brain).length) return 'No notes yet.';
+  return Object.keys(brain).map(cat=>`## ${cat}\n`+Object.entries(brain[cat]).map(([sub,entries])=>`### ${sub}\n`+entries.map(e=>`- ${e.summary||e.raw.slice(0,100)} [${e.date||''}]${e.insight?' | '+e.insight:''}`).join('\n')).join('\n')).join('\n\n');
+}
+
+// Patterns
+async function runPatterns() {
+  if (!Object.keys(brain).length) { document.getElementById('patternView').innerHTML='<div class="empty"><p>Add some notes first</p></div>'; return; }
+  document.getElementById('patternView').innerHTML='<div class="status loading" style="padding:2rem;text-align:center">Analysing patterns across everything...</div>';
+  try {
+    const raw = await api([{role:'user',content:`Analyse these personal notes and return ONLY valid JSON, no markdown.
+
+${brainDump()}
+
+Return:
+{
+  "patterns": [{"text":"specific observable pattern with evidence from notes"}],
+  "contradictions": [{"text":"where actions contradict stated goals — be specific"}],
+  "drift": [{"text":"how focus or priorities have shifted over time"}],
+  "resurface": [{"text":"important unresolved theme that keeps reappearing"}]
+}
+
+Be specific, reference actual note content. Max 2 items per array. Be direct and honest.`}]);
+    let p; try { p = JSON.parse(raw.replace(/```json|```/g,'').trim()); } catch(e) { p={patterns:[],contradictions:[],drift:[],resurface:[]}; }
+    const all = [
+      ...(p.patterns||[]).map(x=>({...x,type:'pattern'})),
+      ...(p.contradictions||[]).map(x=>({...x,type:'contradiction'})),
+      ...(p.drift||[]).map(x=>({...x,type:'drift'})),
+      ...(p.resurface||[]).map(x=>({...x,type:'resurface'}))
+    ];
+    if (!all.length) { document.getElementById('patternView').innerHTML='<div class="empty"><p>Not enough notes yet to detect patterns — keep adding</p></div>'; return; }
+    const labels = {pattern:'Pattern detected',contradiction:'Contradiction',drift:'Focus drift',resurface:'Resurfaced theme'};
+    document.getElementById('patternView').innerHTML = all.map(i=>`<div class="insight ${i.type}"><div class="insight-type">${labels[i.type]}</div><div class="insight-text">${i.text}</div></div>`).join('');
+  } catch(err) {
+    document.getElementById('patternView').innerHTML=`<div class="status err" style="padding:2rem;text-align:center">${err.message}</div>`;
+  }
+}
+
+// Ask
+async function askBrain() {
+  const q = document.getElementById('qTxt').value.trim(); if (!q) return;
+  if (!Object.keys(brain).length) { setSt('askSt','Add notes first','err'); return; }
+  setSt('askSt','Thinking across your entire brain...','loading');
+  document.getElementById('answerWrap').style.display = 'none';
+  try {
+    const raw = await api([{role:'user',content:`You are this person's second brain. Here is everything they have captured:\n\n${brainDump()}\n\nQuestion: "${q}"\n\nAnalyse across ALL categories. Find cross-domain connections. Reference specific notes. Be direct, honest, and genuinely useful. End with a "So what:" section containing one concrete next action.`}]);
+    document.getElementById('answerTxt').textContent = raw;
+    document.getElementById('answerWrap').style.display = 'block';
+    setSt('askSt','','');
+  } catch(err) { setSt('askSt',err.message,'err'); }
+}
+
+// Digest
+async function genDigest() {
+  if (!Object.keys(brain).length) { document.getElementById('digestView').innerHTML='<div class="empty"><p>Add some notes first</p></div>'; return; }
+  document.getElementById('digestView').innerHTML='<div class="status loading" style="padding:2rem;text-align:center">Synthesising...</div>';
+  try {
+    const raw = await api([{role:'user',content:`Produce a weekly digest from these personal notes. Return ONLY valid JSON, no markdown.
+
+${brainDump()}
+
+Return:
+{
+  "headline": "one sentence capturing the overarching theme — make it honest and specific",
+  "themes": ["theme 1","theme 2","theme 3"],
+  "question": "one powerful uncomfortable question worth sitting with",
+  "actions": ["specific action 1","specific action 2","specific action 3"],
+  "connection": "one surprising cross-domain connection the person probably hasn't consciously noticed"
+}`}]);
+    let d; try { d = JSON.parse(raw.replace(/```json|```/g,'').trim()); } catch(e) { d=null; }
+    if (!d) { document.getElementById('digestView').innerHTML='<div class="status err" style="padding:2rem;text-align:center">Could not generate digest</div>'; return; }
+    document.getElementById('digestView').innerHTML = `
+      <div class="digest-headline">${d.headline||''}</div>
+      <div class="digest-section">
+        <h3>Emerging themes</h3>
+        ${(d.themes||[]).map(t=>`<div class="digest-theme">${t}</div>`).join('')}
+      </div>
+      <div class="digest-section">
+        <h3>Question to sit with</h3>
+        <div class="digest-q">${d.question||''}</div>
+      </div>
+      <div class="digest-section">
+        <h3>Three actions</h3>
+        ${(d.actions||[]).map((a,i)=>`<div class="action-item"><span class="action-num">${i+1}</span><span>${a}</span></div>`).join('')}
+      </div>
+      <div class="digest-section">
+        <h3>Hidden connection</h3>
+        <div class="insight resurface"><div class="insight-type">Cross-domain link</div><div class="insight-text">${d.connection||''}</div></div>
+      </div>`;
+  } catch(err) { document.getElementById('digestView').innerHTML=`<div class="status err" style="padding:2rem;text-align:center">${err.message}</div>`; }
+}
+
+// Voice
+async function toggleMic() {
+  if (!recording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRec = new MediaRecorder(stream); audioChunks = [];
+      mediaRec.ondataavailable = e => audioChunks.push(e.data);
+      mediaRec.onstop = async () => {
+        setSt('manSt','Processing voice...','loading');
+        stream.getTracks().forEach(t=>t.stop());
+        // Note: for actual voice transcription, you'd use a speech-to-text API
+        // For now we inform the user to use device dictation
+        setSt('manSt','Use your keyboard mic for voice input on mobile','');
+        toast('Tip: use your keyboard\'s mic button for voice on mobile');
+      };
+      mediaRec.start(); recording = true;
+      document.getElementById('micBtn').classList.add('recording');
+      setSt('manSt','Recording... tap again to stop','loading');
+    } catch(e) { setSt('manSt','Microphone not available','err'); }
+  } else {
+    if (mediaRec && mediaRec.state!=='inactive') mediaRec.stop();
+    recording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+  }
+}
+
+// Drag and drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.style.borderColor='var(--accent)'; });
+dz.addEventListener('dragleave', ()=>{ dz.style.borderColor=''; });
+dz.addEventListener('drop', e=>{ e.preventDefault(); dz.style.borderColor=''; const f=e.dataTransfer.files[0]; if(f){ const dt=new DataTransfer(); dt.items.add(f); document.getElementById('fi').files=dt.files; handleImg({target:{files:dt.files}}); } });
+
+// Service worker registration
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
