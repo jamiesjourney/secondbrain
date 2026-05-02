@@ -724,7 +724,17 @@ function toast(msg, duration=2500) {
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), duration);
 }
-
+function checkApiKey() {
+  const key = localStorage.getItem('sb_apikey');
+  if (!key) {
+    const k = prompt('Paste your Anthropic API key to get started:\n(get one at console.anthropic.com)');
+    if (k && k.trim().startsWith('sk-ant')) {
+      localStorage.setItem('sb_apikey', k.trim());
+      toast('API key saved!');
+    }
+  }
+}
+checkApiKey();
 function setSt(id, msg, type) { const el = document.getElementById(id); if(!el)return; el.textContent=msg; el.className='status '+(type||''); }
 function setQ(q) { document.getElementById('qTxt').value=q; }
 
