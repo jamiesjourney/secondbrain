@@ -741,7 +741,7 @@ function setQ(q) { document.getElementById('qTxt').value=q; }
 // API call
 async function api(messages, systemPrompt) {
   const apiKey = localStorage.getItem('sb_apikey') || '';
-  const body = { model:'claude-sonnet-4-20250514', max_tokens:1500, messages };
+  const body = { model:'claude-sonnet-4-5', max_tokens:1500, messages };
   if (systemPrompt) body.system = systemPrompt;
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method:'POST',
